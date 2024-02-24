@@ -1,0 +1,196 @@
+{
+	"info": {
+		"_postman_id": "e83b987a-81b7-46d2-8076-26eaedc6438c",
+		"name": "Comrades",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "32359879",
+		"_collection_link": "https://orange-flare-778229.postman.co/workspace/comrades~29af2b5d-96d0-4d02-ba59-ca44a99b72fc/collection/32359879-e83b987a-81b7-46d2-8076-26eaedc6438c?action=share&source=collection_link&creator=32359879"
+	},
+	"item": [
+		{
+			"name": "https://portal.comradeskenya.com/api/api/event/read?token=2430d5a40935066870d1b509c898832d",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://portal.comradeskenya.com/api/api/event/read?token=2430d5a40935066870d1b509c898832d",
+					"protocol": "https",
+					"host": [
+						"portal",
+						"comradeskenya",
+						"com"
+					],
+					"path": [
+						"api",
+						"api",
+						"event",
+						"read"
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": "2430d5a40935066870d1b509c898832d"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"johnskelvin10@gmail.com\",\r\n  \"password\": \"123456789\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://portal.comradeskenya.com/api/api/auth/login",
+					"protocol": "https",
+					"host": [
+						"portal",
+						"comradeskenya",
+						"com"
+					],
+					"path": [
+						"api",
+						"api",
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Running events",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://portal.comradeskenya.com/api/api/event/readon?token=2430d5a40935066870d1b509c898832d",
+					"protocol": "https",
+					"host": [
+						"portal",
+						"comradeskenya",
+						"com"
+					],
+					"path": [
+						"api",
+						"api",
+						"event",
+						"readon"
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": "2430d5a40935066870d1b509c898832d"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "expired events",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://portal.comradeskenya.com/api/api/event/readoff?token=2430d5a40935066870d1b509c898832d",
+					"protocol": "https",
+					"host": [
+						"portal",
+						"comradeskenya",
+						"com"
+					],
+					"path": [
+						"api",
+						"api",
+						"event",
+						"readoff"
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": "2430d5a40935066870d1b509c898832d"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "unpaid",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://portal.comradeskenya.com/api/api/event/notpaidfor?eventid=17&token=2430d5a40935066870d1b509c898832d",
+					"protocol": "https",
+					"host": [
+						"portal",
+						"comradeskenya",
+						"com"
+					],
+					"path": [
+						"api",
+						"api",
+						"event",
+						"notpaidfor"
+					],
+					"query": [
+						{
+							"key": "eventid",
+							"value": "17"
+						},
+						{
+							"key": "token",
+							"value": "2430d5a40935066870d1b509c898832d"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "paid for",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://portal.comradeskenya.com/api/api/event/paidfor?eventid=17&token=2430d5a40935066870d1b509c898832d",
+					"protocol": "https",
+					"host": [
+						"portal",
+						"comradeskenya",
+						"com"
+					],
+					"path": [
+						"api",
+						"api",
+						"event",
+						"paidfor"
+					],
+					"query": [
+						{
+							"key": "eventid",
+							"value": "17"
+						},
+						{
+							"key": "token",
+							"value": "2430d5a40935066870d1b509c898832d"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

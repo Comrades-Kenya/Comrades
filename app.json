@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "Comrades",
+    "slug": "Comrades",
+    "version": "2.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "googleServicesFile": "./google-services.json",
+      "versionCode": 27,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.elijah69.Comrades"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "proxy": "https://portal.comradeskenya.com"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "4085fb8d-198e-4a3e-a58b-9fb5aa8605fa"
+      }
+    }
+  }
+}
