@@ -59,6 +59,7 @@ const PaymentMethod1 = ({ navigation }) => {
     paymentData.append('comidyo', encrypt_data(comradeid));
     paymentData.append('cur', 'UGX');
     paymentData.append('telNumber', phoneNumber);
+    paymentData.append('source', 'mobile');
     amounts.forEach((amount, index) => {
       paymentData.append(`event_amounts[${index}]`, amount);
     });
