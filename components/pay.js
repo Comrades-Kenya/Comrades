@@ -24,6 +24,7 @@ const PaymentMethod1 = ({ navigation }) => {
   const route = useRoute();
   const events = route.params?.events;
   const encrypt_data = route.params?.encrypt_data;
+  const [biodata, SetBioData] = useState({});
 
   useEffect(() => {
     let amts = events.map(event => event.amount);
@@ -35,7 +36,37 @@ const PaymentMethod1 = ({ navigation }) => {
       }
     };
     requestPermission();
+    GetBioData();
   }, []);
+
+  const GetBioData = async () => {
+    try {
+      const userToken = await AsyncStorage.getItem('userToken');
+      const comradeid = await AsyncStorage.getItem('comradeid');
+      try {
+        // Replace 'your-api-endpoint' with the actual endpoint
+        const apiUrl = 'https://portal.comradeskenya.com/api/api/event/biodata';
+
+        // Define parameters (replace with your actual parameter names and values)
+        const params = {
+          token: userToken,
+          comradeid: comradeid
+        };
+
+        // Make the GET request with parameters using Axios
+        const response = await axios.get(apiUrl, { params });
+        SetBioData(response.data[0]);
+        console.log(biodata);
+      } catch (error) {
+        await AsyncStorage.removeItem('userToken');
+        navigation.replace('Login');
+      }
+    } catch (error) {
+      console.log(error);
+      await AsyncStorage.removeItem('userToken');
+      navigation.replace('Login');
+    }
+  }
 
 
   const showNotification = async (notification) => {
@@ -66,16 +97,16 @@ const PaymentMethod1 = ({ navigation }) => {
     events.forEach((event, index) => {
       paymentData.append(`event_ids[${index}]`, encrypt_data(event.id));
     });
-    paymentData.append('email_address', 'johnskelvin10@gmail.com');
-    paymentData.append('firstname', 'kelvin');
-    paymentData.append('lastname', 'kiyingi');
+    paymentData.append('email_address', biodata.email_address);
+    paymentData.append('firstname', biodata.firstname);
+    paymentData.append('lastname', biodata.lastname);
     try {
       const response = await axios.post('https://portal.comradeskenya.com/api/api/pay/yo', paymentData);
-  
+
       if (!response.status === 200) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
-  
+
       const responseData = response.data;
       if (responseData.toString().includes('failed')) {
         let notification = {
@@ -103,13 +134,19 @@ const PaymentMethod1 = ({ navigation }) => {
       setLoading(false);
     }
   };
-  
+
 
   const changeAmounts = async (event, amount) => {
     const index = events.indexOf(event);
-    let amts = amounts[index] = parseInt(amount);
-    setAmounts(amts);
-  }
+    let updatedAmounts = [...amounts];
+    updatedAmounts[index] = parseInt(amount);
+    setAmounts(updatedAmounts);
+    const sumofNew = updatedAmounts.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+    let amts = events.map(event => event.amount);
+    const sumofAmounts = amts.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+    console.log(sumofNew => sumofAmounts);
+}
+
 
 
   return (
@@ -127,13 +164,14 @@ const PaymentMethod1 = ({ navigation }) => {
           <Text style={{ alignSelf: 'flex-start' }}>Allocate amount for {event.description}</Text>
           <TextInput
             style={styles.input}
-            placeholder={'Amount for ' + event.description}
+            placeholder={'Amount allocated for event'}
             keyboardType="number-pad"
-            value={amounts[events.indexOf(event)] || event.amount}
+            value={amounts[events.indexOf(event)] || ''}
             onChangeText={(text) => changeAmounts(event, text)}
           />
         </ React.Fragment>
       ))}
+
       <TouchableOpacity style={styles.process} onPress={handlePaymentProcess}>
         <Text style={{ color: 'white', fontSize: 15, fontWeight: 'bold' }}>Process Payment </Text>
       </TouchableOpacity>
@@ -326,7 +364,7 @@ const PayComponent = ({ route, navigation }) => {
     return (encryptedData);
   }
 
-  useEffect( () => {
+  useEffect(() => {
     clearSelected();
   }, []);
 
