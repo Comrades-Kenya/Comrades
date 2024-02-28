@@ -9,8 +9,7 @@ import FormData from 'form-data';
 import * as Notifications from 'expo-notifications';
 import { useRoute } from '@react-navigation/native';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
-import CryptoJS from 'crypto-js';
-import { event } from 'react-native-reanimated';
+import { encode, decode } from 'base-64';
 
 
 
@@ -23,8 +22,8 @@ const PaymentMethod1 = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const route = useRoute();
   const events = route.params?.events;
-  const encrypt_data = route.params?.encrypt_data;
   const [biodata, SetBioData] = useState({});
+  const [valid, setValid] = useState(true);
 
   useEffect(() => {
     let amts = events.map(event => event.amount);
@@ -87,7 +86,7 @@ const PaymentMethod1 = ({ navigation }) => {
     const comradeid = await AsyncStorage.getItem('comradeid');
     setLoading(true);
     let paymentData = new FormData();
-    paymentData.append('comidyo', encrypt_data(comradeid));
+    paymentData.append('comidyo', encode(comradeid));
     paymentData.append('cur', 'UGX');
     paymentData.append('telNumber', phoneNumber);
     paymentData.append('source', 'mobile');
@@ -95,13 +94,22 @@ const PaymentMethod1 = ({ navigation }) => {
       paymentData.append(`event_amounts[${index}]`, amount);
     });
     events.forEach((event, index) => {
-      paymentData.append(`event_ids[${index}]`, encrypt_data(event.id));
+      paymentData.append(`event_ids[${index}]`, encode(event.id));
     });
     paymentData.append('email_address', biodata.email_address);
     paymentData.append('firstname', biodata.firstname);
     paymentData.append('lastname', biodata.lastname);
     try {
-      const response = await axios.post('https://portal.comradeskenya.com/api/api/pay/yo', paymentData);
+      const response = await axios.post(
+        'https://portal.comradeskenya.com/api/api/pay/yo',
+        paymentData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+    
 
       if (!response.status === 200) {
         throw new Error(`HTTP error! Status: ${response.status}`);
@@ -144,8 +152,13 @@ const PaymentMethod1 = ({ navigation }) => {
     const sumofNew = updatedAmounts.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
     let amts = events.map(event => event.amount);
     const sumofAmounts = amts.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
-    console.log(sumofNew => sumofAmounts);
-}
+    if (sumofNew >= sumofAmounts) {
+      setValid(true);
+    }
+    else {
+      setValid(false);
+    }
+  }
 
 
 
@@ -172,9 +185,11 @@ const PaymentMethod1 = ({ navigation }) => {
         </ React.Fragment>
       ))}
 
-      <TouchableOpacity style={styles.process} onPress={handlePaymentProcess}>
-        <Text style={{ color: 'white', fontSize: 15, fontWeight: 'bold' }}>Process Payment </Text>
-      </TouchableOpacity>
+      {valid &&
+        <TouchableOpacity style={styles.process} onPress={handlePaymentProcess}>
+          <Text style={{ color: 'white', fontSize: 15, fontWeight: 'bold' }}>Process Payment </Text>
+        </TouchableOpacity>
+      }
 
       {loading && <ActivityIndicator style={{ marginTop: 20 }} size="large" color="green" />}
     </View>
@@ -219,7 +234,7 @@ const PaymentMethod2 = () => {
 
 
   const handlePaymentProcess = async () => {
-    let data = JSON.stringify({
+    let data = {
       "tx_ref": "hooli-tx-1920bbtytty",
       "amount": "500",
       "currency": "UGX",
@@ -237,24 +252,17 @@ const PaymentMethod2 = () => {
         "title": "Pied Piper Payments",
         "logo": "http://www.piedpiper.com/app/themes/joystick-v27/images/logo.png"
       }
-    });
-
+    };
+  
     try {
-      const response = await fetch('https://cors-anywhere.herokuapp.com/https://api.flutterwave.com/v3/payments', {
-        method: 'POST',
+      const response = await axios.post('https://api.flutterwave.com/v3/payments', data, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer FLWSECK_TEST-0442d8579a90467c9e866d42494c58b9-X'
         },
-        body: data,
       });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const responseData = await response.json();
-      alert(JSON.stringify(responseData));
+  
+      alert(JSON.stringify(response.data));
     } catch (error) {
       console.error(error);
     }
@@ -354,24 +362,10 @@ const PayComponent = ({ route, navigation }) => {
   const [encrypted_eventid, setEncEventIds] = useState([]);
   const [encomidid, setEncomidid] = useState('')
 
-  const encrypt_data = (data) => {
-    const secretKey = 'TheComrade67prototype';
-
-    const plainText = data.toString();
-
-    // Encrypt the data
-    const encryptedData = CryptoJS.AES.encrypt(plainText, secretKey).toString();
-    return (encryptedData);
-  }
-
-  useEffect(() => {
-    clearSelected();
-  }, []);
-
   return (
     <Tab.Navigator tabBar={props => <CustomTabBar {...props} />}>
-      <Tab.Screen name="MTN & AIRTEL" component={PaymentMethod1} options={{ headerShown: false }} initialParams={{ events: events, encrypt_data: encrypt_data }} />
-      <Tab.Screen name="FLUTTER WAVE" component={PaymentMethod2} options={{ headerShown: false }} initialParams={{ events: events, encrypt_data: encrypt_data }} />
+      <Tab.Screen name="MTN & AIRTEL" component={PaymentMethod1} options={{ headerShown: false }} initialParams={{ events: events }} />
+      <Tab.Screen name="FLUTTER WAVE" component={PaymentMethod2} options={{ headerShown: false }} initialParams={{ events: events }} />
       <Tab.Screen name="MPESA" component={PaymentMethod3} options={{ headerShown: false }} />
     </Tab.Navigator>
   );

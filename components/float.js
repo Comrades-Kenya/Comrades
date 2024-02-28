@@ -8,7 +8,8 @@ const FloatingButton = ({ payFor, clearSelected }) => {
     const navigation = useNavigation();
 
     const handlePress = () => {
-        navigation.navigate('Pay', { events: payFor, clearSelected: clearSelected });
+        clearSelected();
+        navigation.navigate('Pay', { events: payFor });
     };
 
     return (

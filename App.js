@@ -20,6 +20,7 @@ import FloatingButton from './components/float';
 import FlutterView from './components/flutter';
 import MenuIcon from './components/menuicon';
 import { set } from 'react-native-reanimated';
+import { StatusBar } from 'expo-status-bar';
 
 const Stack = createStackNavigator();
 

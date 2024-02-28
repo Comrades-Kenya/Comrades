@@ -1,6 +1,6 @@
 // LoginComponent.js
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ActivityIndicator, ImageBackground } from 'react-native';
 import { Input, Text, Image } from 'react-native-elements';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -112,9 +112,12 @@ const LoginComponent = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
-      {isLoading ? (<ActivityIndicator size="large" color="green" />) : (
-        <>
+    <ImageBackground
+      source={require('../assets/elephant.jpg')} // specify the path to your image
+      style={styles.backgroundImage}
+    >
+      {isLoading ? (<ActivityIndicator style={{marginTop: 25}} size="large" color="green" />) : (
+        <View style={styles.overlay}>
           <Image
             source={{ uri: 'https://portal.comradeskenya.com/assets/cond/comrade.png' }}
             style={styles.image}
@@ -140,18 +143,23 @@ const LoginComponent = ({ navigation }) => {
             <Text style={styles.textwhite}>Login</Text>
           </TouchableOpacity>
           <Text onPress={resetPassword} style={styles.textright}>Forgot password</Text>
-        </>
+        </View>
       )}
-    </View>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  backgroundImage: {
+    resizeMode: 'cover',
+    height: '100%'
+  },
+  overlay: {
     flex: 1,
     justifyContent: 'center',
     padding: 20,
-    alignItems: 'center'
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.7)'
   },
   textright: {
     marginTop: 10,
