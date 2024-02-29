@@ -234,31 +234,41 @@ const PaymentMethod2 = () => {
 
 
   const handlePaymentProcess = async () => {
-    let data = {
-      "tx_ref": "hooli-tx-1920bbtytty",
-      "amount": "500",
-      "currency": "UGX",
-      "redirect_url": "https://webhook.site/9d0b00ba-9a69-44fa-a43d-a82c33c36fdc",
-      "meta": {
-        "consumer_id": 23,
-        "consumer_mac": "92a3-912ba-1192a"
+    const paymentData = {
+      tx_ref: "comrades and time",
+      amount: "500",
+      currency: "UGX",
+      redirect_url: "https://portal.comradeskenya.com/multipletest/",
+      payment_options: "mobile_money",
+      meta: {
+        consumer_id: 23,
+        consumer_mac: "92a3-912ba-1192a"
       },
-      "customer": {
-        "email": "user@gmail.com",
-        "phonenumber": "080****4528",
-        "name": "Yemi Desola"
+      targeturl: "https://api.flutterwave.com/v3/payments/",
+      method: "POST",
+      key: "FLWSECK-f9739c6e759369e4b432a1005f32ffb0-18c26582fb6vt-X",
+      customer: {
+        email: "user@gmail.com",
+        phonenumber: "080****4528",
+        name: "Yemi Desola"
       },
-      "customizations": {
-        "title": "Pied Piper Payments",
-        "logo": "http://www.piedpiper.com/app/themes/joystick-v27/images/logo.png"
+      customizations: {
+        title: "Events",
+        logo: "https://portal.comradeskenya.com/assets/cond/comrade.png"
+      },
+      meta: {
+        price: "",
+        comrade_id: "",
+        event_ids: "",
+        event_amounts: "",
+        memberid: ""
       }
     };
   
     try {
-      const response = await axios.post('https://api.flutterwave.com/v3/payments', data, {
+      const response = await axios.post('https://portal.comradeskenya.com/api/api/pay/forward', paymentData, {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer FLWSECK_TEST-0442d8579a90467c9e866d42494c58b9-X'
         },
       });
   
@@ -267,6 +277,7 @@ const PaymentMethod2 = () => {
       console.error(error);
     }
   };
+  
 
 
 
