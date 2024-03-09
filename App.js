@@ -21,6 +21,7 @@ import FlutterView from './components/flutter';
 import MenuIcon from './components/menuicon';
 import { set } from 'react-native-reanimated';
 import { StatusBar } from 'expo-status-bar';
+import UserProfile from './components/biodata';
 
 const Stack = createStackNavigator();
 
@@ -88,7 +89,9 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <NavigationContainer>
         <Stack.Navigator initialRouteName="Login">
-          <Stack.Screen name="Login" component={LoginComponent} />
+          <Stack.Screen name="Login" component={LoginComponent} options={{
+            headerLeft: () => null,
+          }} />
           <Stack.Screen
             name="Dashboard"
             component={DashboardScreen}
@@ -103,7 +106,8 @@ export default function App() {
           <Stack.Screen name="Reset Password" component={ResetPassword} />
           <Stack.Screen name="Change Password" component={EnterCode} />
           <Stack.Screen name="Event Participants" component={ParticipantsScreen} />
-          <Stack.Screen name="FlutterWave" component={FlutterView} />
+          <Stack.Screen name="FlutterWave & Mpesa" component={FlutterView} />
+          <Stack.Screen name="Bio Data" component={UserProfile} />
           <Stack.Screen name="Menu">
             {() => <Menu onProfileSettings={handleProfileSettings} />}
           </Stack.Screen>

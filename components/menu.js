@@ -48,7 +48,7 @@ const Menu = () => {
         try {
             // Clear the user token or any relevant data stored in AsyncStorage
             AsyncStorage.removeItem('userToken');
-      
+            AsyncStorage.removeItem('comradeid');
             // Navigate to the login screen or any other screen
             // Make sure you have access to navigation prop
         } catch (error) {
@@ -56,6 +56,10 @@ const Menu = () => {
         }
         navigation.replace('Login');
     };
+
+    const gotoBiodata = () => {
+        navigation.navigate('Bio Data');
+    }
 
     return (
         <View style={styles.container}>
@@ -66,14 +70,8 @@ const Menu = () => {
                     <Text style={styles.userEmail}>{biodata.email_address}</Text>
                 </View>
             </View>
-            <TouchableOpacity style={styles.menuItem}>
-                <Text>Profile Settings</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity onPress={gotoBiodata} style={styles.menuItem}>
                 <Text>Bio Data</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem}>
-                <Text>Payments</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
                 <Text>Logout</Text>

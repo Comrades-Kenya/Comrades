@@ -1,8 +1,15 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
 
-const FlutterView = ({url}) => {
+
+const FlutterView = ({route, navigation}) => {
+  const { url } = route.params;
+
+  useEffect(() => {
+    console.log(url);
+  }, []);
+
   return (
     <View style={styles.container}>
       <WebView

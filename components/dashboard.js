@@ -14,10 +14,42 @@ const DashboardScreen = ({ navigation }) => {
     const [payFor, setPayFor] = useState([]);
     const route = useRoute();
     const { updateSelected, clearSelected } = route.params;
+    const [biodata, SetBioData] = useState([]);
 
     useEffect(() => {
         checkLoginStatus();
+        GetBioData();
     }, []);
+
+
+    const GetBioData = async () => {
+        try {
+            const userToken = await AsyncStorage.getItem('userToken');
+            const comradeid = await AsyncStorage.getItem('comradeid');
+            try {
+                // Replace 'your-api-endpoint' with the actual endpoint
+                const apiUrl = 'https://portal.comradeskenya.com/api/api/event/biodata';
+
+                // Define parameters (replace with your actual parameter names and values)
+                const params = {
+                    token: userToken,
+                    comradeid: comradeid
+                };
+
+                // Make the GET request with parameters using Axios
+                const response = await axios.get(apiUrl, { params });
+                SetBioData(response.data[0]);
+                console.log(biodata);
+            } catch (error) {
+                await AsyncStorage.removeItem('userToken');
+                navigation.replace('Login');
+            }
+        } catch (error) {
+            console.log(error);
+            await AsyncStorage.removeItem('userToken');
+            navigation.replace('Login');
+        }
+    }
 
 
     const checkLoginStatus = async () => {
@@ -124,16 +156,21 @@ const DashboardScreen = ({ navigation }) => {
     };
 
     useEffect(() => {
-        const fetchParticipantsPromises = responseData.map((event) => getEventParticipants(event.id));
-
-        Promise.all(fetchParticipantsPromises)
-            .then(() => {
-                console.log('All participants data fetched:', participants);
-            })
-            .catch((error) => {
-                console.error('Error fetching participants:', error);
-                navigation.replace('Login');
-            });
+        try {
+            
+            const fetchParticipantsPromises = responseData.map((event) => getEventParticipants(event.id));
+    
+            Promise.all(fetchParticipantsPromises)
+                .then(() => {
+                    console.log('All participants data fetched:', participants);
+                })
+                .catch((error) => {
+                    console.error('Error fetching participants:', error);
+                    navigation.replace('Login');
+                });
+        } catch (error) {
+            navigation.replace('Login');
+        }
     }, [responseData]);
 
     const handleEventPress = (event) => {
@@ -196,7 +233,7 @@ const DashboardScreen = ({ navigation }) => {
                                         >
                                             <Text style={styles.buttonText}>Paid List</Text>
                                         </TouchableOpacity>
-                                        {event.status == 'on' ? (
+                                        {event.status == 'on' && !participants[event.id]?.some(participant => (participant.firstname+participant.lastname) === (biodata.firstname+biodata.lastname)) ? (
                                             <TouchableOpacity style={styles.payButton} onPress={() => addpayFor(event)}>
                                                 <Text style={styles.buttonText}>Pay {payFor.includes(event) && <>✔</>}</Text>
                                             </TouchableOpacity>

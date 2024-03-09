@@ -11,9 +11,6 @@ import { useRoute } from '@react-navigation/native';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { encode, decode } from 'base-64';
 
-
-
-
 const Tab = createBottomTabNavigator();
 
 const PaymentMethod1 = ({ navigation }) => {
@@ -109,7 +106,7 @@ const PaymentMethod1 = ({ navigation }) => {
           },
         }
       );
-    
+
 
       if (!response.status === 200) {
         throw new Error(`HTTP error! Status: ${response.status}`);
@@ -205,11 +202,44 @@ const PaymentMethod2 = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
+  const [biodata, SetBioData] = useState({});
+  const [valid, setValid] = useState(true);
+  const [mpesaset, setMpesa] = useState(true);
 
   useEffect(() => {
     let amts = events.map(event => event.amount);
     setAmounts(amts);
+    GetBioData();
   }, []);
+
+  const GetBioData = async () => {
+    try {
+      const userToken = await AsyncStorage.getItem('userToken');
+      const comradeid = await AsyncStorage.getItem('comradeid');
+      try {
+        // Replace 'your-api-endpoint' with the actual endpoint
+        const apiUrl = 'https://portal.comradeskenya.com/api/api/event/biodata';
+
+        // Define parameters (replace with your actual parameter names and values)
+        const params = {
+          token: userToken,
+          comradeid: comradeid
+        };
+
+        // Make the GET request with parameters using Axios
+        const response = await axios.get(apiUrl, { params });
+        SetBioData(response.data[0]);
+        console.log(response.data[0]);
+      } catch (error) {
+        await AsyncStorage.removeItem('userToken');
+        navigation.replace('Login');
+      }
+    } catch (error) {
+      console.log(error);
+      await AsyncStorage.removeItem('userToken');
+      navigation.replace('Login');
+    }
+  }
 
 
   const showNotification = async (notification) => {
@@ -228,56 +258,68 @@ const PaymentMethod2 = () => {
 
   const changeAmounts = async (event, amount) => {
     const index = events.indexOf(event);
-    let amts = amounts[index] = parseInt(amount);
-    setAmounts(amts);
+    let updatedAmounts = [...amounts];
+    updatedAmounts[index] = parseInt(amount);
+    setAmounts(updatedAmounts);
+    const sumofNew = updatedAmounts.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+    let amts = events.map(event => event.amount);
+    const sumofAmounts = amts.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+    if (sumofNew >= sumofAmounts) {
+      setValid(true);
+    }
+    else {
+      setValid(false);
+    }
   }
 
 
   const handlePaymentProcess = async () => {
+    setLoading(true);
+    const total_amount = amounts.reduce((accumulator, currentValue) => parseInt(accumulator) + parseInt(currentValue), 0);
     const paymentData = {
-      tx_ref: "comrades and time",
-      amount: "500",
+      tx_ref: "comrades " + Date.now(),
+      amount: total_amount,
       currency: "UGX",
-      redirect_url: "https://portal.comradeskenya.com/multipletest/",
+      redirect_url: "https://portal.comradeskenya.com/multipletest",
       payment_options: "mobile_money",
-      meta: {
-        consumer_id: 23,
-        consumer_mac: "92a3-912ba-1192a"
-      },
       targeturl: "https://api.flutterwave.com/v3/payments/",
       method: "POST",
       key: "FLWSECK-f9739c6e759369e4b432a1005f32ffb0-18c26582fb6vt-X",
       customer: {
-        email: "user@gmail.com",
-        phonenumber: "080****4528",
-        name: "Yemi Desola"
+        email: biodata.email_address,
+        phonenumber: biodata.whatsapp,
+        name: biodata.firstname + ' ' + biodata.lastname
       },
       customizations: {
-        title: "Events",
+        title: `Pay for ${events.length} Comrades Events`,
         logo: "https://portal.comradeskenya.com/assets/cond/comrade.png"
       },
       meta: {
-        price: "",
-        comrade_id: "",
-        event_ids: "",
-        event_amounts: "",
-        memberid: ""
+        price: total_amount,
+        comrade_id: encode(biodata.admin_id),
+        event_ids: events.map(event => encode(event.id)).join(","),
+        event_amounts: amounts.join(","),
+        memberid: encode(biodata.admin_id),
+        source: "mobile"
       }
     };
-  
+
     try {
       const response = await axios.post('https://portal.comradeskenya.com/api/api/pay/forward', paymentData, {
         headers: {
           'Content-Type': 'application/json',
         },
       });
-  
-      alert(JSON.stringify(response.data));
+
+      const flutter = response.data;
+      setLoading(false);
+      navigation.navigate('FlutterWave & Mpesa', { url: flutter.data.link });
     } catch (error) {
       console.error(error);
+      setLoading(false);
     }
   };
-  
+
 
 
 
@@ -288,13 +330,6 @@ const PaymentMethod2 = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.paywith}>Pay with FlutterWave</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter Phone Number"
-        keyboardType="number-pad"
-        value={phoneNumber}
-        onChangeText={(text) => setPhoneNumber(text)}
-      />
       {events.map((event) => (
         <React.Fragment key={event.id}>
           <Text style={{ alignSelf: 'flex-start' }}>Allocate amount for {event.description}</Text>
@@ -302,14 +337,16 @@ const PaymentMethod2 = () => {
             style={styles.input}
             placeholder={'Amount for ' + event.description}
             keyboardType="number-pad"
-            value={amounts[events.indexOf(event)] || event.amount}
+            value={amounts[events.indexOf(event)] || ''}
             onChangeText={(text) => changeAmounts(event, text)}
           />
         </ React.Fragment>
       ))}
-      <TouchableOpacity style={styles.process} onPress={handlePaymentProcess}>
-        <Text style={{ color: 'white', fontSize: 15, fontWeight: 'bold' }}>Process Payment </Text>
-      </TouchableOpacity>
+      {valid &&
+        <TouchableOpacity style={styles.process} onPress={handlePaymentProcess}>
+          <Text style={{ color: 'white', fontSize: 15, fontWeight: 'bold' }}>Process Payment </Text>
+        </TouchableOpacity>
+      }
 
       {loading && <ActivityIndicator style={{ marginTop: 20 }} size="large" color="green" />}
     </View>
@@ -319,7 +356,139 @@ const PaymentMethod2 = () => {
 const PaymentMethod3 = () => {
   const [selectedOption, setSelectedOption] = useState('');
   const options = ['Option 1', 'Option 2', 'Option 3'];
-  const [events, setEvents] = useState([]);
+  const route = useRoute();
+  const events = route.params?.events;
+  const [amounts, setAmounts] = useState([]);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigation = useNavigation();
+  const [biodata, SetBioData] = useState({});
+  const [valid, setValid] = useState(true);
+  const [mpesaset, setMpesa] = useState(true);
+
+  useEffect(() => {
+    let amts = events.map(event => event.kes);
+    setAmounts(amts);
+    GetBioData();
+  }, []);
+
+  const GetBioData = async () => {
+    try {
+      const userToken = await AsyncStorage.getItem('userToken');
+      const comradeid = await AsyncStorage.getItem('comradeid');
+      try {
+        // Replace 'your-api-endpoint' with the actual endpoint
+        const apiUrl = 'https://portal.comradeskenya.com/api/api/event/biodata';
+
+        // Define parameters (replace with your actual parameter names and values)
+        const params = {
+          token: userToken,
+          comradeid: comradeid
+        };
+
+        // Make the GET request with parameters using Axios
+        const response = await axios.get(apiUrl, { params });
+        SetBioData(response.data[0]);
+        console.log(response.data[0]);
+      } catch (error) {
+        await AsyncStorage.removeItem('userToken');
+        navigation.replace('Login');
+      }
+    } catch (error) {
+      console.log(error);
+      await AsyncStorage.removeItem('userToken');
+      navigation.replace('Login');
+    }
+  }
+
+
+  const showNotification = async (notification) => {
+
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+      }),
+    });
+
+    // Present the immediate notification
+    await Notifications.presentNotificationAsync(notification);
+  };
+
+  const changeAmounts = async (event, amount) => {
+    const index = events.indexOf(event);
+    let updatedAmounts = [...amounts];
+    updatedAmounts[index] = parseInt(amount);
+    setAmounts(updatedAmounts);
+    const sumofNew = updatedAmounts.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+    let sumofAmounts = 0;
+    if (events[0].kes == undefined) {
+      let amts = events.map(event => 500);
+      sumofAmounts = amts.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+    }
+    else {
+      let amts = events.map(event => event.kes);
+      sumofAmounts = amts.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+    }
+    if (sumofNew >= sumofAmounts) {
+      setValid(true);
+    }
+    else {
+      setValid(false);
+    }
+  }
+
+
+  const handlePaymentProcess = async () => {
+    setLoading(true);
+    const total_amount = amounts.reduce((accumulator, currentValue) => parseInt(accumulator) + parseInt(currentValue), 0);
+    const paymentData = {
+      tx_ref: "comrades " + Date.now(),
+      amount: total_amount,
+      currency: "KES",
+      redirect_url: "https://portal.comradeskenya.com/multipletest",
+      payment_options: "mpesa",
+      targeturl: "https://api.flutterwave.com/v3/payments/",
+      method: "POST",
+      key: "FLWSECK-f9739c6e759369e4b432a1005f32ffb0-18c26582fb6vt-X",
+      customer: {
+        email: biodata.email_address,
+        phonenumber: biodata.whatsapp,
+        name: biodata.firstname + ' ' + biodata.lastname
+      },
+      customizations: {
+        title: `Pay for ${events.length} Comrades Events`,
+        logo: "https://portal.comradeskenya.com/assets/cond/comrade.png"
+      },
+      meta: {
+        price: total_amount,
+        comrade_id: encode(biodata.admin_id),
+        event_ids: events.map(event => encode(event.id)).join(","),
+        event_amounts: amounts.join(","),
+        memberid: encode(biodata.admin_id),
+        source: "mobile"
+      }
+    };
+
+    try {
+      const response = await axios.post('https://portal.comradeskenya.com/api/api/pay/forward', paymentData, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const flutter = response.data;
+      setLoading(false);
+      navigation.navigate('FlutterWave & Mpesa', { url: flutter.data.link });
+    } catch (error) {
+      console.error(error);
+      setLoading(false);
+    }
+  };
+
+
+
 
   const handleOptionChange = (itemValue) => {
     setSelectedOption(itemValue);
@@ -327,23 +496,26 @@ const PaymentMethod3 = () => {
 
   return (
     <View style={styles.container}>
-      <Image
-        source={require('../assets/mpesa.png')}
-        style={styles.pesa}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Enter Phone Number"
-        keyboardType='number-pad'
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Enter Amount"
-        keyboardType="number-pad"
-      />
-      <TouchableOpacity style={styles.process}>
-        <Text style={{ color: 'white', fontSize: 15, fontWeight: 'bold' }}>Process Payment </Text>
-      </TouchableOpacity>
+      <Text style={styles.paywith}>Pay with MPESA</Text>
+      {events.map((event) => (
+        <React.Fragment key={event.id}>
+          <Text style={{ alignSelf: 'flex-start' }}>Allocate amount for {event.description}</Text>
+          <TextInput
+            style={styles.input}
+            placeholder={'Amount for ' + event.description}
+            keyboardType="number-pad"
+            value={amounts[events.indexOf(event)] || ''}
+            onChangeText={(text) => changeAmounts(event, text)}
+          />
+        </ React.Fragment>
+      ))}
+      {valid &&
+        <TouchableOpacity style={styles.process} onPress={handlePaymentProcess}>
+          <Text style={{ color: 'white', fontSize: 15, fontWeight: 'bold' }}>Process Payment </Text>
+        </TouchableOpacity>
+      }
+
+      {loading && <ActivityIndicator style={{ marginTop: 20 }} size="large" color="green" />}
     </View>
   );
 };
@@ -372,12 +544,21 @@ const PayComponent = ({ route, navigation }) => {
   const { events, clearSelected } = route.params;
   const [encrypted_eventid, setEncEventIds] = useState([]);
   const [encomidid, setEncomidid] = useState('')
+  const [pesa, setPesa] = useState([]);
+
+  useEffect(() => {
+    const filteredEvents = events.filter(event => event.kes !== null && event.kes !== "0");
+    console.log(filteredEvents);
+    setPesa(filteredEvents);
+  }, []);
 
   return (
     <Tab.Navigator tabBar={props => <CustomTabBar {...props} />}>
       <Tab.Screen name="MTN & AIRTEL" component={PaymentMethod1} options={{ headerShown: false }} initialParams={{ events: events }} />
       <Tab.Screen name="FLUTTER WAVE" component={PaymentMethod2} options={{ headerShown: false }} initialParams={{ events: events }} />
-      <Tab.Screen name="MPESA" component={PaymentMethod3} options={{ headerShown: false }} />
+      {pesa.length > 0 && 
+      <Tab.Screen name="MPESA" component={PaymentMethod3} options={{ headerShown: false }} initialParams={{ events: pesa }} />
+      }
     </Tab.Navigator>
   );
 };
@@ -407,7 +588,8 @@ const styles = StyleSheet.create({
     fontSize: 20,
     marginTop: 5,
     color: 'green',
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    marginBottom: 10
   },
   image: {
     width: 300,

@@ -1,6 +1,6 @@
 // LoginComponent.js
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, ActivityIndicator, ImageBackground } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ActivityIndicator, ImageBackground, BackHandler } from 'react-native';
 import { Input, Text, Image } from 'react-native-elements';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -28,6 +28,15 @@ const LoginComponent = ({ navigation }) => {
     };
 
     requestPermission();
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      // Prevent going back if on the login screen
+      return true;
+    });
+
+    return () => {
+      backHandler.remove();
+    };
   }, []);
 
   const showNotification = async () => {
