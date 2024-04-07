@@ -1,5 +1,5 @@
-import React, {useState, useEffect} from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
@@ -39,18 +39,28 @@ const UserProfile = ({ navigation }) => {
         }
     }
 
-
     return (
         <View style={styles.container}>
-            <Text style={styles.label}>Names: {biodata.firstname} {biodata.lastname}</Text>
-
-            <Text style={styles.label}>Occupation: {biodata.Occupation}</Text>
-
-            <Text style={styles.label}>Address: {biodata.county}</Text>
-
-            <Text style={styles.label}>Email: {biodata.email_address}</Text>
-            <Text style={styles.text}>Gender: {biodata.gender}</Text>
+            {biodata.firstname == undefined ? (
+                <ActivityIndicator style={{ marginTop: 50, marginBottom: 50 }} size="large" color="green" />
+            ) : (
+                <>
+                    <Text style={styles.label}>Names: {biodata.firstname} {biodata.lastname}</Text>
+                    <Text style={styles.label}>Occupation: {biodata.Occupation}</Text>
+                    <Text style={styles.label}>Address: {biodata.county}, {biodata.sub_county}, {biodata.location}, {biodata.sub_location}</Text>
+                    <Text style={styles.label}>Email: {biodata.email_address}</Text>
+                    <Text style={styles.label}>Gender: {biodata.gender}</Text>
+                    <Text style={styles.label}>Role: {biodata.role}</Text>
+                    <Text style={styles.label}>Probation: {biodata.probation}</Text>
+                    <Text style={styles.label}>Marital Status: {biodata.marital_status}</Text>
+                    <Text style={styles.label}>WhatsApp: {biodata.whatsapp}</Text>
+                    <Text style={styles.label}>Employer Contact: {biodata.employer_contact}</Text>
+                    <Text style={styles.label}>Registration Date: {biodata.registration_date}</Text>
+                    {/* Add more fields as needed */}
+                </>
+            )}
         </View>
+
     );
 };
 

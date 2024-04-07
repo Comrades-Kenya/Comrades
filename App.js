@@ -22,6 +22,7 @@ import MenuIcon from './components/menuicon';
 import { set } from 'react-native-reanimated';
 import { StatusBar } from 'expo-status-bar';
 import UserProfile from './components/biodata';
+import Dependents from './components/dependents';
 
 const Stack = createStackNavigator();
 
@@ -37,12 +38,13 @@ export default function App() {
 
   const updateSelected = (event) => {
     setPayFor(prevPayFor => {
-      if (prevPayFor.includes(event)) {
-        return prevPayFor.filter(item => item !== event);
+      if (prevPayFor.some(item => item.id === event.id)) {
+        return prevPayFor.filter(item => item.id !== event.id);
       } else {
         return [...prevPayFor, event];
       }
     });
+
     setFloatvisible(true);
   }
 
@@ -108,6 +110,7 @@ export default function App() {
           <Stack.Screen name="Event Participants" component={ParticipantsScreen} />
           <Stack.Screen name="FlutterWave & Mpesa" component={FlutterView} />
           <Stack.Screen name="Bio Data" component={UserProfile} />
+          <Stack.Screen name="Dependants" component={Dependents} />
           <Stack.Screen name="Menu">
             {() => <Menu onProfileSettings={handleProfileSettings} />}
           </Stack.Screen>

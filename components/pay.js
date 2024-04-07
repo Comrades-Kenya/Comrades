@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator, Text, Alert, NativeModules } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator, Text, Alert, NativeModules, ScrollView } from 'react-native';
 import { Input, Image, Button } from 'react-native-elements';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -21,6 +21,7 @@ const PaymentMethod1 = ({ navigation }) => {
   const events = route.params?.events;
   const [biodata, SetBioData] = useState({});
   const [valid, setValid] = useState(true);
+  const [members, setMembers] = useState([]);
 
   useEffect(() => {
     let amts = events.map(event => event.amount);
@@ -33,6 +34,7 @@ const PaymentMethod1 = ({ navigation }) => {
     };
     requestPermission();
     GetBioData();
+    getmembers();
   }, []);
 
   const GetBioData = async () => {
@@ -78,6 +80,28 @@ const PaymentMethod1 = ({ navigation }) => {
     // Present the immediate notification
     await Notifications.presentNotificationAsync(notification);
   };
+
+  const getmembers = async () => {
+    try {
+      const userToken = await AsyncStorage.getItem('userToken');
+      try {
+        const apiUrl = 'https://portal.comradeskenya.com/api/api/event/members';
+        const params = {
+          token: userToken,
+        };
+        const response = await axios.get(apiUrl, { params });
+        let memberset = response.data.map(member => ({ label: `${member.firstname} ${member.lastname}`, value: member.id }));
+        setMembers(memberset);
+      } catch (error) {
+        await AsyncStorage.removeItem('userToken');
+        navigation.replace('Login');
+      }
+    } catch (error) {
+      console.log(error);
+      await AsyncStorage.removeItem('userToken');
+      navigation.replace('Login');
+    }
+  }
 
   const handlePaymentProcess = async () => {
     const comradeid = await AsyncStorage.getItem('comradeid');
@@ -157,11 +181,34 @@ const PaymentMethod1 = ({ navigation }) => {
     }
   }
 
+  const names = ['John', 'Alice', 'Bob', 'Emma', 'Michael', 'Olivia', 'William', 'Sophia'];
 
+  const [suggestedValue, setSuggestedValue] = useState('');
+  const handleSuggestionChange = (text) => {
+    // Implement logic to handle suggestions based on text input
+    // For example, you can fetch suggestions from an API and set them in the state
+    setSuggestedValue(text);
+  };
+
+  const setPayer = async (memberid) => {
+
+  }
 
   return (
     <View style={styles.container}>
       <Text style={styles.paywith}>PAY WITH MTN & AIRTEL</Text>
+      {/* Text Input with suggestions */}
+      <TextInput
+        style={styles.input}
+        placeholder="Search a member."
+        onChangeText={handleSuggestionChange}
+        value={suggestedValue}
+      />
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scrollView}>
+        {names.map((name, index) => (
+          <Text key={index} style={styles.name}>{name}</Text>
+        ))}
+      </ScrollView>
       <TextInput
         style={styles.input}
         placeholder="Enter Phone Number"
@@ -173,25 +220,22 @@ const PaymentMethod1 = ({ navigation }) => {
         <React.Fragment key={event.id}>
           <Text style={{ alignSelf: 'flex-start' }}>Allocate amount for {event.description}</Text>
           <TextInput
-            style={styles.input}
-            placeholder={'Amount allocated for event'}
+            style={{ ...styles.input, borderColor: valid ? '#ccc' : 'red' }}
+            placeholder="Enter amount"
             keyboardType="number-pad"
-            value={amounts[events.indexOf(event)] || ''}
-            onChangeText={(text) => changeAmounts(event, text)}
+            onChangeText={(amount) => changeAmounts(event, amount)}
           />
-        </ React.Fragment>
+        </React.Fragment>
       ))}
-
       {valid &&
         <TouchableOpacity style={styles.process} onPress={handlePaymentProcess}>
           <Text style={{ color: 'white', fontSize: 15, fontWeight: 'bold' }}>Process Payment </Text>
         </TouchableOpacity>
       }
-
-      {loading && <ActivityIndicator style={{ marginTop: 20 }} size="large" color="green" />}
     </View>
   );
 };
+
 
 const PaymentMethod2 = () => {
   const [selectedOption, setSelectedOption] = useState('');
@@ -556,8 +600,8 @@ const PayComponent = ({ route, navigation }) => {
     <Tab.Navigator tabBar={props => <CustomTabBar {...props} />}>
       <Tab.Screen name="MTN & AIRTEL" component={PaymentMethod1} options={{ headerShown: false }} initialParams={{ events: events }} />
       <Tab.Screen name="FLUTTER WAVE" component={PaymentMethod2} options={{ headerShown: false }} initialParams={{ events: events }} />
-      {pesa.length > 0 && 
-      <Tab.Screen name="MPESA" component={PaymentMethod3} options={{ headerShown: false }} initialParams={{ events: pesa }} />
+      {pesa.length > 0 &&
+        <Tab.Screen name="MPESA" component={PaymentMethod3} options={{ headerShown: false }} initialParams={{ events: pesa }} />
       }
     </Tab.Navigator>
   );
@@ -610,6 +654,24 @@ const styles = StyleSheet.create({
     marginTop: 10,
     borderRadius: 5,
     color: 'black',
+    marginVertical: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+  },
+  scrollView: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  name: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    backgroundColor: 'gray',
+    borderRadius: 20,
+    marginRight: 10,
   },
   process: {
     paddingHorizontal: 50,

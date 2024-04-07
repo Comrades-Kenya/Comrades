@@ -3,6 +3,7 @@ import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
+import Dependents from './dependents';
 
 
 
@@ -61,6 +62,10 @@ const Menu = () => {
         navigation.navigate('Bio Data');
     }
 
+    const gotoDependants = () => {
+        navigation.navigate('Dependants');
+    }
+
     return (
         <View style={styles.container}>
             <View style={styles.userInfo}>
@@ -72,6 +77,9 @@ const Menu = () => {
             </View>
             <TouchableOpacity onPress={gotoBiodata} style={styles.menuItem}>
                 <Text>Bio Data</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={gotoDependants} style={styles.menuItem}>
+                <Text>Dependants</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
                 <Text>Logout</Text>
